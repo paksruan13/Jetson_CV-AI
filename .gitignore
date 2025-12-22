@@ -1,4 +1,68 @@
-.github/
+# Rust backend
 p1/target/
+p1/**/*.rs.bk
+
+# Python testing
 ar_client_test.py
+__pycache__/
+*.pyc
+*.pyo
+
+# Unity client
+MERLIN_Quest3_client/Library/
+MERLIN_Quest3_client/Temp/
+MERLIN_Quest3_client/Logs/
+MERLIN_Quest3_client/obj/
+MERLIN_Quest3_client/Builds/
+MERLIN_Quest3_client/.plastic/
+MERLIN_Quest3_client/*.csproj
+MERLIN_Quest3_client/*.sln
+MERLIN_Quest3_client/*.slnx
+MERLIN_Quest3_client/*_BackUpThisFolder_ButDontShipItWithYourGame/
+MERLIN_Quest3_client/*.csproj
+MERLIN_Quest3_client/*.sln
+MERLIN_Quest3_client/*.slnx
+
+
+# macOS
 .DS_Store
+.AppleDouble
+.LSOverride
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Logs
+*.log
+
+# GitHub metadata
+.github/
+
+#Audio recordings
+*.wav
+recordings/
+
+#Envs
+venv/
+env/
+.venv/
+ENV/
+
+#Python bytecode
+*.pyc
+*.pyo
+*.pyd
+
+#Secrets
+.env
+*.key
+*.pem
+secrets/
+
+#Editor configs
+.vscode/settings.json  # Keep .vscode/extensions.json
+*.code-workspace
