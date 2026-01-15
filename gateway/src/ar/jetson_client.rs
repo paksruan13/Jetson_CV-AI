@@ -15,7 +15,6 @@ pub struct JetsonARClient {
 
 /// Server messages from Jetson
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(tag = "type")]
 enum ServerMessage {
     Connected {
         server_version: String,
@@ -27,12 +26,21 @@ enum ServerMessage {
     },
 }
 
+/// AR Frame from p1/src/ar/protocol.rs
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ARFrame {
-    //For latency tracking and frame sync
     pub timestamp: u64,
-    //Sequential frame ID for deteching dropped frames
     pub frame_id: u32,
+    #[serde(default)]
+    pub protocol_version: Option<u16>,
+    #[serde(default)]
+    pub objects: Vec<String>,
+    #[serde(default)]
+    pub hands: Option<String>,
+    #[serde(default)]
+    pub audio_context: Option<String>,
+    #[serde(default)]
+    pub device_states: Option<String>,
 }
 
 impl JetsonARClient {
@@ -69,28 +77,24 @@ impl JetsonARClient {
             match msg{
                 Ok(Message::Text(text)) => {
                     // Parse Server Message
-                    match serde_json::from_str::<ServerMessage>(&text) {
-                        Ok(ServerMessage::Connected { server_version, session_id }) => {
-                            info!("Connected - Version: {}, SessionId: {}", server_version, session_id);
-                        }
-                        Ok(ServerMessage::Frame(frame)) => {
-                            // Convert ARFrame to ARScene for GraphQL
-                            let scene = ARScene {
-                                timestamp: frame.timestamp,
-                                frame_id: frame.frame_id,
-                            };
-
-                            // Broadcast to subscribers
-                            if let Err(_) = self.tx.send(scene) {
-                                warn!("No subscribers for ARScene");
+                    if let Ok(server_msg) = serde_json::from_str::<ServerMessage>(&text) {
+                        match server_msg {
+                            ServerMessage::Connected { server_version, session_id } => {
+                                info!("Connected - Version: {}, Session ID: {}", server_version, session_id);
+                            }
+                            ServerMessage::Frame(frame) => {
+                                self.broadcast_frame(frame);
+                            }
+                            ServerMessage::Error { message } => {
+                                error!("Jetson Error: {}", message);
                             }
                         }
-                        Ok(ServerMessage::Error { message }) => {
-                            error!("Jetson Error: {}", message);
-                        }
-                        Err(e) => {
-                            warn!("Failed to parse message: {}", e);
-                        }
+                    }
+                    else if let Ok(frame) = serde_json::from_str::<ARFrame>(&text) {
+                        self.broadcast_frame(frame);
+                    }
+                    else {
+                        warn!("Failed to parse message: {}", text);
                     }
                 }
                 Ok(Message::Close(_)) => {
@@ -106,5 +110,17 @@ impl JetsonARClient {
         }
 
         Ok(())
+    }
+
+    //Helper to broadcast ARFrame to GraphQL subscriber
+    fn broadcast_frame(&self, frame: ARFrame) {
+        let scene = ARScene {
+            timestamp: frame.timestamp,
+            frame_id: frame.frame_id,
+        };
+
+        if let Err(_) = self.tx.send(scene) {
+            warn!("No active ARScene subscribers to receive frame");
+        }
     }
 }
