@@ -11,7 +11,10 @@ use tower_http::cors::CorsLayer;
 use tracing::{info, Level};
 
 mod schema;
+mod ar;
+
 use schema::{build_schema, MerlinSchema, ARScene};
+use ar::JetsonARClient;
 
 // Appstate shared across routes
 #[derive(Clone)]
@@ -21,6 +24,21 @@ struct AppState {
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    dotenv::dotenv().ok();
+
+    // Load Config from env
+    let jetson_url = std::env::var("JETSON_AR_BRIDGE_URL").expect("Jetson AR Bridge URL not set in .env");
+    let gateway_host = std::env::var("GATEWAY_HOST").unwrap_or_else(|_| "0.0.0.0".to_string());
+    let gateway_port = std::env::var("GATEWAY_PORT").unwrap_or_else(|_| "4000".to_string());
+    let buffer_size = std::env::var("AR_FRAME_BUFFER_SIZE")
+        .unwrap_or_else(|_| "100".to_string())
+        .parse::<usize>()
+        .unwrap_or(100);
+    info!("Configs loaded:");
+    info!("  Jetson URL: {}", jetson_url);
+    info!("  Gateway: {}:{}", gateway_host, gateway_port);
+    info!("  Frame buffer: {} frames", buffer_size);
+
     // Init Logging
     tracing_subscriber::fmt() // formatter (INFO & below Type)
         .with_max_level(Level::INFO)
@@ -29,16 +47,16 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     
 
     // Create broadcast channel for AR streaming (100 frame buffer)
-    let (ar_stream_tx, _rx) = broadcast::channel::<ARScene>(100);
+    let (ar_stream_tx, _rx) = broadcast::channel::<ARScene>(buffer_size);
     // Build Schema
     let schema = build_schema(ar_stream_tx.clone());
     // Create app state
     let state = AppState { schema };
 
     // Spawn background task to simulate TEMP AR Frames
-    let ar_tx_clone = ar_stream_tx.clone();
+    let ar_client = JetsonARClient::new(jetson_url, ar_stream_tx.clone());
     tokio::spawn(async move {
-        simulate_ar_frames(ar_tx_clone).await;
+        ar_client.start().await;
     });
 
     // Build Axum Router
@@ -49,7 +67,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .layer(CorsLayer::permissive()) // no permission for prod code
         .with_state(state);
 
-    let addr = "0.0.0.0:4000"; // reverse prox for prod
+    let addr = format!("{}:{}", gateway_host, gateway_port); // reverse prox for prod
     info!("GraphQL Gateway listening on {}", addr);
     info!("GraphQL Playground: http://{}/", addr);
     info!("WebSocket Subscription: ws://{}/ws", addr);
@@ -88,39 +106,4 @@ async fn graphql_subscription(
 // Health check endpoint
 async fn health_check() -> impl IntoResponse {
     "MERLIN GraphQL Gateway Ok"
-}
-
-// Simulate AR frames for testing (will replace with Jetson connection in Phase 3)
-async fn simulate_ar_frames(ar_tx: broadcast::Sender<ARScene>) {
-    use std::time::{SystemTime, UNIX_EPOCH};
-    use tokio::time::{interval, Duration};
-
-    info!("Starting AR frame simulator (30 FPS)");
-
-    let mut frame_id = 0u32;
-    let mut timer = interval(Duration::from_millis(33)); // ~30 FPS
-
-    loop {
-        timer.tick().await;
-
-        let timestamp = SystemTime::now()
-            .duration_since(UNIX_EPOCH)
-            .unwrap()
-            .as_micros() as u64;
-
-        let scene = ARScene {
-            timestamp,
-            frame_id,
-        };
-
-        // Broadcast to all subscribers
-        let _ = ar_tx.send(scene);
-
-        frame_id = frame_id.wrapping_add(1);
-
-        // Log every 30 frames (1 second)
-        if frame_id % 30 == 0 {
-            info!("Simulated {} AR frames", frame_id);
-        }
-    }
 }
