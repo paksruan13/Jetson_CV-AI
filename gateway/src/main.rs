@@ -80,7 +80,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
 // GraphQL Playground UI
 async fn graphql_playground() -> impl IntoResponse {
-    Html(playground_source(GraphQLPlaygroundConfig::new("/")))
+    Html(playground_source(GraphQLPlaygroundConfig::new("/").subscription_endpoint("/ws")))
 }
 
 // GraphQL query/mutation handler
