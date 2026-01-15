@@ -120,7 +120,7 @@ async fn simulate_ar_frames(ar_tx: broadcast::Sender<ARScene>) {
 
         // Log every 30 frames (1 second)
         if frame_id % 30 == 0 {
-            info!("📊 Simulated {} AR frames", frame_id);
+            info!("Simulated {} AR frames", frame_id);
         }
     }
 }
