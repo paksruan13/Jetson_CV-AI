@@ -7,15 +7,12 @@ using Newtonsoft.Json;
 
 /// Websocket client to AR Bridge...connecting to Jetson Backend
 
-///Connection settings: Jetson IP & Port
+///Connection settings: Jetson IP and Port
 /// Status: connection status, frames received, current FPS
 public class ARBridge : MonoBehaviour
 {
-    [Header("Connection Settings")]
-    [SerializeField] private string jetsonIp = "192.168.1.100"; //Jetson IP 
-    [SerializeField] private int jetsonPort = 8765; //Jetson port
-    [SerializeField] private float reconnectDelay = 2f; // Add delay between reconnections
-    [SerializeField] private bool autoReconnect = true;
+    [Header("Configuration")]
+    [SerializeField] private ARBridgeConfig config;
 
     [Header("Status")]
     public bool IsConnected { get; private set; } = false;
@@ -35,9 +32,23 @@ public class ARBridge : MonoBehaviour
     public event Action OnConnected;
     public event Action OnDisconnected;
 
+    void Awake()
+    {
+        if (config == null)
+        {
+            config  = Resources.Load<ARBridgeConfig>("ARBridgeConfig");
+            if (config == null)
+            {
+                Debug.LogError("ARBridgeConfig not found in Resources folder! Create in Assets/Resources/");
+                enabled = false;
+                return;
+            }
+        }
+    }
+
     void Start()
     {
-        Debug.Log($"Connecting to AR Bridge: ws://{jetsonIp}:{jetsonPort}");
+        Debug.Log($"Connecting to AR Bridge: ws://{config.jetsonIp}:{config.jetsonPort}");
         StartCoroutine(ConnectWithRetry());
     }
 
@@ -57,14 +68,14 @@ public class ARBridge : MonoBehaviour
         {
             if (!IsConnected)
             {
-                Debug.Log($"Attempting connection to ws://{jetsonIp}:{jetsonPort}");
+                Debug.Log($"Attempting connection to ws://{config.jetsonIp}:{config.jetsonPort}");
                 yield return StartCoroutine(AttemptConnection());
             }
 
-            if (!IsConnected && autoReconnect)
+            if (!IsConnected && config.autoReconnect)
             {
-                Debug.Log($"Retrying in {reconnectDelay} seconds...");
-                yield return new WaitForSeconds(reconnectDelay);
+                Debug.Log($"Retrying in {config.reconnectDelay} seconds...");
+                yield return new WaitForSeconds(config.reconnectDelay);
             }
             else if (IsConnected)
             {
@@ -91,7 +102,7 @@ public class ARBridge : MonoBehaviour
                 yield return websocket.Close();
             }
         }
-        websocket = new WebSocket($"ws://{jetsonIp}:{jetsonPort}");
+        websocket = new WebSocket($"ws://{config.jetsonIp}:{config.jetsonPort}");
          
          //register callbacks
          websocket.OnOpen += OnWebSocketOpen;
@@ -174,7 +185,7 @@ public class ARBridge : MonoBehaviour
             OnDisconnected?.Invoke();
         }
 
-        if (autoReconnect && !isQuitting)
+        if (config.autoReconnect && !isQuitting)
         {
             Debug.Log("Atempting to reconnect...");
         }
@@ -193,7 +204,7 @@ public class ARBridge : MonoBehaviour
                     device_name = "Meta Quest 3",
                     supports_hand_tracking = true,
                     supports_spatial_audio = true,
-                    max_fps = 90
+                    max_fps = (uint)config.targetFPS
                 }
             }
         };
@@ -206,7 +217,6 @@ public class ARBridge : MonoBehaviour
     async void OnApplicationQuit()
     {
         isQuitting = true;
-        autoReconnect = false;
         if (websocket != null && websocket.State == WebSocketState.Open)
         {
             Debug.Log("Closing Websocket");

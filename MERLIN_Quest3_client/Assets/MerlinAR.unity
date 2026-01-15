@@ -973,10 +973,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dc90558f415b044bd99278119b9c1139, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ARBridge
-  jetsonIp: 192.168.68.61
-  jetsonPort: 8765
-  reconnectDelay: 2
-  autoReconnect: 1
+  config: {fileID: 0}
   framesReceived: 0
 --- !u!4 &1832329100
 Transform:
@@ -1102,10 +1099,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dc90558f415b044bd99278119b9c1139, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ARBridge
-  jetsonIp: 192.168.68.61
-  jetsonPort: 8765
-  reconnectDelay: 2
-  autoReconnect: 1
+  config: {fileID: 11400000, guid: a4cf835958b4e004682e14b5431470e4, type: 2}
   framesReceived: 0
 --- !u!1 &2088381013
 GameObject:
