@@ -128,3 +128,8 @@ PlasticSCM.log
 # Unity Collaborate
 .collabignore
 .collab/
+
+# Ip Secrets
+.env
+Assets/Resources/ARBridgeConfig.asset
+Assets/Resources/ARBridgeConfig.asset.meta
