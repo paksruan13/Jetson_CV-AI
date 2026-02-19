@@ -66,3 +66,5 @@ secrets/
 #Editor configs
 .vscode/settings.json  # Keep .vscode/extensions.json
 *.code-workspace
+
+.vs/
