@@ -1,0 +1,80 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+venv_merlin/
+ENV/
+*.egg-info/
+dist/
+build/
+
+# ChromaDB Storage (contains private conversations!)
+merlin_memory/
+**/merlin_memory/
+*.db
+*.sqlite
+*.sqlite3
+
+# Embeddings Cache
+.cache/
+*.pkl
+*.pickle
+
+# Audio Recordings (may contain sensitive voice data)
+*.wav
+*.mp3
+*.flac
+recordings/
+audio_cache/
+
+# Environment Variables & Secrets
+.env
+.env.*
+*.key
+*.pem
+credentials.json
+config.json
+secrets/
+
+# API Keys & Tokens
+*_token.txt
+*_api_key.txt
+huggingface_token
+
+# Logs
+*.log
+logs/
+*.out
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Model Weights (large files - use Git LFS if needed)
+models/
+*.bin
+*.safetensors
+*.onnx
+*.pt
+*.pth
+
+# Temporary Files
+tmp/
+temp/
+*.tmp
+
+# Jupyter Notebooks checkpoints
+.ipynb_checkpoints/
+
+memory_cli.py
