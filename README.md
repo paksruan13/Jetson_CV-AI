@@ -61,4 +61,4 @@ This separation allows compute-intensive and privacy-sensitive workloads to run 
 ### AR Bridge Protocol
 - **Reference Files:** `p1/src/ar/protocol.rs`, `p1/src/ar/bridge.rs`
 - **Serialization:** `serde_json` for message encoding
-- **Transport:** WebSocket with automatic reconnection
+- **Transport:** WebSocket with automatic reconnectionp
