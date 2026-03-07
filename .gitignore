@@ -1,6 +1,9 @@
-# Rust backend
+# Rust build artifacts
 rust_audio/target/
-rust_audio/**/*.rs.bk
+p1/target/              # Keep for historical branches
+gateway/target/
+**/*.rs.bk
+Cargo.lock
 
 # Python testing
 ar_client_test.py
@@ -20,10 +23,6 @@ MERLIN_Quest3_client/*.csproj
 MERLIN_Quest3_client/*.sln
 MERLIN_Quest3_client/*.slnx
 MERLIN_Quest3_client/*_BackUpThisFolder_ButDontShipItWithYourGame/
-MERLIN_Quest3_client/*.csproj
-MERLIN_Quest3_client/*.sln
-MERLIN_Quest3_client/*.slnx
-
 
 # macOS
 .DS_Store
@@ -82,25 +81,29 @@ huggingface_token
 logs/
 *.out
 
-# IDE
+# IDE & Editor
 .vscode/
+.vscode-server/
 .idea/
 *.swp
 *.swo
 *~
 .vs/
+*.suo
+*.user
 
 # OS
 .DS_Store
 Thumbs.db
 
-# Model Weights (large files - use Git LFS if needed)
+# Model Weight
 models/
 *.bin
 *.safetensors
 *.onnx
 *.pt
 *.pth
+*.gguf
 
 # Temporary Files
 tmp/
@@ -110,4 +113,6 @@ temp/
 # Jupyter Notebooks checkpoints
 .ipynb_checkpoints/
 
+# Development scratch files
 memory_cli.py
+ar_client_test.py
