@@ -1,6 +1,6 @@
 # Rust backend
-p1/target/
-p1/**/*.rs.bk
+rust_audio/target/
+rust_audio/**/*.rs.bk
 
 # Python testing
 ar_client_test.py
