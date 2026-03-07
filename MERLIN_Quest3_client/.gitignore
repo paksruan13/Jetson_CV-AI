@@ -99,7 +99,7 @@ InitTestScene*.unity*
 /[Aa]ssets/[Ii]nit[Tt]est[Ss]cene*.unity*
 
 # Meta XR SDK cache
-/[Aa]ssets/Oculus/
+/[Aa]ssets/Oculus/R
 /[Aa]ssets/Meta/
 
 # Quest 3 APK symbols
@@ -128,3 +128,8 @@ PlasticSCM.log
 # Unity Collaborate
 .collabignore
 .collab/
+
+# Ip Secrets
+.env
+Assets/Resources/ARBridgeConfig.asset
+Assets/Resources/ARBridgeConfig.asset.meta
