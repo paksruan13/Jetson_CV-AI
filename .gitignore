@@ -7,6 +7,7 @@ ar_client_test.py
 __pycache__/
 *.pyc
 *.pyo
+.github/
 
 # Unity client
 MERLIN_Quest3_client/Library/
@@ -29,6 +30,58 @@ MERLIN_Quest3_client/*.slnx
 .AppleDouble
 .LSOverride
 
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+venv_merlin/
+ENV/
+*.egg-info/
+dist/
+build/
+
+# ChromaDB Storage (contains private conversations!)
+merlin_memory/
+**/merlin_memory/
+*.db
+*.sqlite
+*.sqlite3
+
+# Embeddings Cache
+.cache/
+*.pkl
+*.pickle
+
+# Audio Recordings (may contain sensitive voice data)
+*.wav
+*.mp3
+*.flac
+recordings/
+audio_cache/
+
+# Environment Variables & Secrets
+.env
+.env.*
+*.key
+*.pem
+credentials.json
+config.json
+secrets/
+
+# API Keys & Tokens
+*_token.txt
+*_api_key.txt
+huggingface_token
+
+# Logs
+*.log
+logs/
+*.out
+
 # IDE
 .vscode/
 .idea/
@@ -36,35 +89,24 @@ MERLIN_Quest3_client/*.slnx
 *.swo
 *~
 
-# Logs
-*.log
+# OS
+.DS_Store
+Thumbs.db
 
-# GitHub metadata
-.github/
+# Model Weights (large files - use Git LFS if needed)
+models/
+*.bin
+*.safetensors
+*.onnx
+*.pt
+*.pth
 
-#Audio recordings
-*.wav
-recordings/
+# Temporary Files
+tmp/
+temp/
+*.tmp
 
-#Envs
-venv/
-env/
-.venv/
-ENV/
+# Jupyter Notebooks checkpoints
+.ipynb_checkpoints/
 
-#Python bytecode
-*.pyc
-*.pyo
-*.pyd
-
-#Secrets
-.env
-*.key
-*.pem
-secrets/
-
-#Editor configs
-.vscode/settings.json  # Keep .vscode/extensions.json
-*.code-workspace
-
-.vs/
+memory_cli.py
