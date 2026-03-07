@@ -99,7 +99,7 @@ InitTestScene*.unity*
 /[Aa]ssets/[Ii]nit[Tt]est[Ss]cene*.unity*
 
 # Meta XR SDK cache
-/[Aa]ssets/Oculus/
+/[Aa]ssets/Oculus/R
 /[Aa]ssets/Meta/
 
 # Quest 3 APK symbols
