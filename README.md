@@ -53,12 +53,12 @@ This separation allows compute-intensive and privacy-sensitive workloads to run 
 - **Flow:** Mic → WebRTC VAD → Whisper (GPU) → Wake Word Check → Command Extraction
 
 ### Audio Processing (Rust)
-- **Reference File:** `p1/src/audio/processor.rs`
+- **Reference File:** `rust_comms/src/audio/processor.rs`
 - **Concurrency:** `Arc<Mutex<AudioMetrics>>` for thread-safe metrics
 - **Features:** RMS/peak calculation, noise gate, WAV recording
 - **Future Integration:** Bandpass filtering (300-3400 Hz), spectral analysis, quality gating (SNR > 10dB)
 
 ### AR Bridge Protocol
-- **Reference Files:** `p1/src/ar/protocol.rs`, `p1/src/ar/bridge.rs`
+- **Reference Files:** `rust_comms/src/ar/protocol.rs`, `rust_comms/src/ar/bridge.rs`
 - **Serialization:** `serde_json` for message encoding
 - **Transport:** WebSocket with automatic reconnectionp

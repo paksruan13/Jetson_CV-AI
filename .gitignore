@@ -1,6 +1,6 @@
 # Rust build artifacts
-rust_audio/target/
-p1/target/              # Keep for historical branches
+rust_comms/target/
+p1/target/
 gateway/target/
 **/*.rs.bk
 Cargo.lock
