@@ -12,7 +12,7 @@ ENV/
 dist/
 build/
 
-# ChromaDB Storage (contains private conversations!)
+# ChromaDB Storage 
 merlin_memory/
 **/merlin_memory/
 *.db
