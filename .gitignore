@@ -31,7 +31,6 @@ MERLIN_Quest3_client/*_BackUpThisFolder_ButDontShipItWithYourGame/
 
 # Python
 __pycache__/
-*.py[cod]
 *$py.class
 *.so
 .Python
