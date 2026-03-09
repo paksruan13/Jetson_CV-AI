@@ -91,5 +91,5 @@ impl PyNormalizer {
 fn merlin_audio(_py: Python, m:&PyModule) -> PyResult<()> {
     m.add_class::<PyNoiseGate>()?;
     m.add_class::<PyNormalizer>()?;
-    Ok(());
+    Ok(())
 }
