@@ -33,12 +33,11 @@ class TTSEngine:
             ]
 
             aplay_cmd = [
-                "aplay",
-                "-r", "22050", # Sample rate
-                "-t", "raw", # Raw audio
-                "-f", "S16_LE", # Format: 16-bit signed little-endian
-                "-q", # quiet mode
-                "-" # read from stdin
+                "paplay",
+                "--raw",
+                "--rate", "22050",
+                "--format", "s16le",
+                "--channels", "1"
             ]
 
             # Start piper process

@@ -47,7 +47,7 @@ class LLMClient:
                     "stream": False,
                     "options": {
                         "temperature": 0.7,
-                        "num_predict": 100, # Max tokens (short responses for now)
+                        "num_predict": 50, # Max tokens (short responses for now)
                         "top_k": 40,
                         "top_p": 0.9
                     }

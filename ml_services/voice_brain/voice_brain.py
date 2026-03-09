@@ -1,8 +1,11 @@
-"""MERLIN Core Pipeline: Brain"""
+"""MERLIN Core Speech Pipeline: Audio"""
 
 import os
 os.environ["PYTORCH_CUDA_ALLOC_CONF"] = 'backend:native, expandable_segments:True'
 
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).parent.parent))
 import torch
 import sounddevice as sd
 import gc
@@ -11,6 +14,17 @@ import scipy.signal
 import time
 from faster_whisper import WhisperModel
 import webrtcvad
+from reasoning_engine.llm_client import LLMClient
+from speech_synthesis.tts_engine import TTSEngine
+
+# import rust audio filters
+try:
+    from merlin_audio import PyNoiseGate, PyNormalizer
+    RUST_FILTERS = True
+    print(f"Rust Filters Available")
+except ImportError as e:
+    RUST_FILTERS = False
+    print(f"Rust filters Unavailable: {e}")
 
 class VoiceBrain:
     def __init__(self):
@@ -27,6 +41,36 @@ class VoiceBrain:
         self.vad = webrtcvad.Vad(3)
         print("VAD initialized")
 
+        #Load Rust audio filters
+        if RUST_FILTERS:
+            print("Loading Rust Audio filters...")
+            self.noise_gate = PyNoiseGate (
+                threshold_db = -45.0,
+                attack_ms = 5.0,
+                release_ms = 100.0,
+                sample_rate = 16000.0
+            )
+            self.normalizer = PyNormalizer (
+                target_level_db = -20.0,
+                window_ms = 200.0,
+                sample_rate = 16000.0
+            )
+            print("Audio Filters Ready")
+        else:
+            self.noise_gate = None
+            self.normalizer = None
+
+        print("Loading LLM Client...")
+        self.llm = LLMClient()
+        print("Client Ready")
+
+        print("Loading TTSEngine...")
+        self.tts = TTSEngine()
+        print("TTS Ready")
+
+        self.conversation_history = []
+        self.user_name = None
+
         self.wake_words = ["merlin", "hey merlin"]
 
         #Audio Setting
@@ -36,7 +80,22 @@ class VoiceBrain:
         self.silence_duration = 2.0 #2s silence to indicate end of speech
 
         print(f"Wake words : {self.wake_words}")
-    
+
+    def apply_filters(self, audio_f32):
+        """Apply rust audio to 160khz audio chunk"""
+        if not RUST_FILTERS or self.noise_gate is None:
+            return audio_f32
+        
+        # Apply noise gate
+        filtered_bytes = self.noise_gate.process(audio_f32.tobytes())
+
+        # Normalize
+        normalized_bytes = self.normalizer.process(filtered_bytes)
+
+        # Convert back to f32 array
+        result = np.frombuffer(normalized_bytes, dtype = np.float32)
+
+        return result
     def is_speech(self, audio_chunk):
         "WebRTC VAD for speech detection"
         if len(audio_chunk) != self.frame_samples:
@@ -64,8 +123,11 @@ class VoiceBrain:
             #resample chunk to 16khz for VAD...mic is 44.1kHz
             num_samples = int(len(chunk) * self.sample_rate / mic_rate)
             chunk_16k = scipy.signal.resample(chunk, num_samples).astype(np.float32)
+
+            # Apply Rust filters after resampling, Before VAD
+            filtered_chunk = self.apply_filters(chunk_16k)
             #check if speech
-            if self.is_speech(chunk_16k):
+            if self.is_speech(filtered_chunk):
                 if not speech_started:
                     if not hasattr(callback, "speech_frames"):
                         callback.speech_frames = 0
@@ -75,7 +137,7 @@ class VoiceBrain:
                         speech_started = True
                         callback.speech_frames = 0
                 else:
-                    chunks.append(chunk_16k)
+                    chunks.append(filtered_chunk)
                     silence_chunks = 0
                     print("Now Speaking", end="", flush=True)
             else:
@@ -110,6 +172,7 @@ class VoiceBrain:
         #Combine chunks
         audio = np.concatenate(chunks).flatten()
         return audio.astype(np.float32)
+    
     def transcribe(self, audio):
         print("Transcribing...")
         start = time.time()
@@ -134,9 +197,10 @@ class VoiceBrain:
                 parts = text.split(wake_word, 1)
                 if len(parts) > 1:
                     command = parts[1].strip()
-                    command = command.lstrip(",.?!")
-                    return command
-        return text
+                    command = command.lstrip(",.?! ")
+                    if command:
+                        return command
+        return ""
     
     def listen_loop(self):
         "Main listening loop"
@@ -153,7 +217,40 @@ class VoiceBrain:
             if self.contains_wakeword(text):
                 command = self.extract_command(text)
                 print(f"Full text: {text}")
-                print(f"Command: {command}")
+                if command:
+                    print(f"Command: {command}")
+
+                    if "my name is" in command.lower():
+                        name_parts = command.lower().split("my name is")
+                        if len(name_parts) > 1:
+                            self.user_name = name_parts[1].strip().split()[0].capitalize()
+                            print(f"Saved user name: {self.user_name}")
+
+                    print("Thinking...")
+
+                    system_prompt = "You are MERLIN, a helpful AI assistant"
+                    if self.user_name:
+                        system_prompt += f"You are speaking with {self.user_name}."
+                    system_prompt += "Keep responses to 1-2 sentences."
+
+                    response = self.llm.generate_response(
+                        command,
+                        memory_context = self.conversation_history,
+                        system_prompt = system_prompt
+                    )
+                    print(f"Response: {response}")
+                    self.conversation_history.append({
+                        "user_input": command,
+                        "merlin_response": response
+                    })
+
+                    if len(self.conversation_history) > 10:
+                        self.conversation_history = self.conversation_history[-10:]
+
+                    print("Speaking...")
+                    self.tts.speak(response)
+                else:
+                    print("Command: (Wake word only no command detected)")
             
             else:
                 print(f"No wake word: \"{text}\" (ignored)")
