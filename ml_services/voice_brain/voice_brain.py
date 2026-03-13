@@ -73,6 +73,9 @@ class VoiceBrain:
 
         self.wake_words = ["merlin", "hey merlin"]
 
+        self.conversation_history = []
+        self.max_history = 10
+
         #Audio Setting
         self.sample_rate = 16000
         self.chunk_duration = 0.02
@@ -239,6 +242,7 @@ class VoiceBrain:
                         system_prompt = system_prompt
                     )
                     print(f"Response: {response}")
+
                     self.conversation_history.append({
                         "user_input": command,
                         "merlin_response": response
@@ -251,7 +255,6 @@ class VoiceBrain:
                     self.tts.speak(response)
                 else:
                     print("Command: (Wake word only no command detected)")
-            
             else:
                 print(f"No wake word: \"{text}\" (ignored)")
 
